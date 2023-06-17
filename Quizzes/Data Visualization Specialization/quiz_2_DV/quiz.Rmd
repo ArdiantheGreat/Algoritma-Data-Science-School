@@ -119,8 +119,9 @@ In order to analyze the trend, we need to subset the data for the country of **P
 ```{r}
 library(lubridate)
 # your code here
+
+data_kiva$posted_time <- ymd_hms(data_kiva$posted_time)
 data_kiva_philippines = data_kiva[data_kiva$country == "Philippines",]
-data_kiva_philippines$posted_time <- ymd_hms(data_kiva_philippines$posted_time)
 ```
 
 For exploratory purposes, find out the range of the posted time:
@@ -128,7 +129,7 @@ For exploratory purposes, find out the range of the posted time:
 ```{r}
 # insert your code here
 # str(data_kiva_philippines)
-tail(data_kiva_philippines[order(data_kiva_philippines$posted_time, decreasing = F),]$posted_time)
+head(data_kiva_philippines[order(data_kiva_philippines$posted_time, decreasing = F),]$posted_time)
 ```
 
 4. What is the earliest and latest posted time of any loan?
@@ -146,18 +147,27 @@ Create a new column `funding_duration` which stores the difference between `fund
 
 ```{r}
 # your code here
+data_kiva$funded_time <- ymd_hms(data_kiva$funded_time)
+
+data_kiva$funding_duration <- difftime(data_kiva$posted_time, data_kiva$funded_amount, units = "hours")
+head(data_kiva)
 ```
 
 Since we want to visualize the monthly average funding duration, we need to create a new column called `month` which contains the month of the posted time before aggregating the data. 
 
 ```{r}
 # your code here
+data_kiva$month <- month(data_kiva$posted_time)
+tail(data_kiva)
 ```
 
 Finally, we can aggregate the data based on the `month` of the posted time and the `repayment interval` to get the average (mean) `funding duration`. 
 
 ```{r}
 # your code here
+data_kiva_agg <- aggregate(funding_duration ~ month + repayment_interval, data_kiva, FUN = mean)
+
+data_kiva_agg[order(data_kiva_agg$funding_duration, decreasing = T),]
 ```
 
 5. Which repayment interval has the longest funding duration and at what month did it happen?
@@ -165,6 +175,8 @@ Finally, we can aggregate the data based on the `month` of the posted time and t
    - [ ] monthly repayment interval in April
    - [ ] bullet repayment interval in January
    - [ ] monthly repayment interval in March
+   
+# Jawaban hasil codingan/analisis saya: Monthly repayment interval in December
 
 The data has been properly prepared. Now it is your time to create the line plot to visualize the trend. Fill in the code below to produce the plot.
 
