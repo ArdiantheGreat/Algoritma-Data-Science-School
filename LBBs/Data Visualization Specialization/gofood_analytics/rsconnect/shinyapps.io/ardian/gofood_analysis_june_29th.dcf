@@ -1,0 +1,14 @@
+name: gofood_analysis_june_29th
+title: gofood_analysis_june_29th
+username:
+account: ardian
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9384711
+bundleId: 7402730
+url: https://ardian.shinyapps.io/gofood_analysis_june_29th/
+when: 1688057120.41943
+lastSyncTime: 1688057120.41944
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: preparation.Rmd
