@@ -117,8 +117,8 @@ function(input, output, session) {
       group_by(merchant_name, merchant_category) %>%
       summarise(count=n()) %>%
       ungroup() %>%
-      top_n(n_merchant) %>%
-      arrange(-count) %>%
+      arrange(desc(count)) %>%
+      head(n_merchant) %>% 
       mutate(
         plotly_tooltip = glue(
           "{merchant_name}
