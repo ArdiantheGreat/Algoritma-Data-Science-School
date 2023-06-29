@@ -161,8 +161,8 @@ function(input, output, session) {
       group_by(merchant_name) %>%
       summarise(sum_amount = sum(harga_produk)) %>%
       ungroup() %>%
-      top_n(n_merchant, wt=sum_amount) %>%
       arrange(desc(sum_amount)) %>%
+      head(n_merchant) %>%
       mutate(
         comma_sum_amount = format(sum_amount, big.mark = ","),
         plotly_tooltip = glue(
@@ -258,7 +258,7 @@ function(input, output, session) {
     } else {
       filtered_gofood <- filter(gofood,
                                 merchant_category == selected_category)
-      title_text <- glue("TOP {n_merchant} in '{selected_category}' CATEGORY")
+      title_text <- glue("CUSTOMER AGE DISTRIBUTION in '{selected_category}' CATEGORY")
     }
     
     plot_gofood_customer_by_age <- ggplot(filtered_gofood, aes(x = customer_age,

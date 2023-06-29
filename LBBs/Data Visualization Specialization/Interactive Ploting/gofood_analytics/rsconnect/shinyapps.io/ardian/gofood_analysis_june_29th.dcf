@@ -5,10 +5,10 @@ account: ardian
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9384711
-bundleId: 7402730
+bundleId: 7402908
 url: https://ardian.shinyapps.io/gofood_analysis_june_29th/
-when: 1688057120.41943
-lastSyncTime: 1688057120.41944
+when: 1688060468.53852
+lastSyncTime: 1688060468.53853
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: preparation.Rmd
