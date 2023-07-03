@@ -160,12 +160,11 @@ function(input, output, session) {
       filter(Order.Year == selected_year)
     
     plot_segment_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Segment,
-                                          values = ~total_order, text = ~paste(Segment), hoverinfo = "value",
-                                          marker = list(colors = c("#1d4a82", "#3f6ebf", "#95d5f5"))) %>%
+                                         values = ~total_order, textinfo = "label+percent",text = ~paste(total_order, "orders"),
+                                         hoverinfo = "text", marker = list(colors = c("#1d4a82", "#3f6ebf", "#95d5f5"))) %>%
       layout(
         title = "Segment Purchase Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_segment_distribution
@@ -183,12 +182,11 @@ function(input, output, session) {
     filtered_plot_data <- filter(plot_data, Order.Year == selected_year)
     
     plot_category_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Category,
-                                          values = ~total_order, text = ~paste(Category), hoverinfo = "value",
+                                          values = ~total_order, textinfo = "label+percent", text = ~paste(total_order, "orders"), hoverinfo = "text",
                                           marker = list(colors = c("#3f6ebf", "#1d4a82", "#95d5f5"))) %>%
       layout(
         title = "Category Purchase Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_category_distribution
@@ -205,12 +203,11 @@ function(input, output, session) {
     filtered_plot_data <- filter(plot_data, Order.Year == selected_year)
     
     plot_ship_mode_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Ship.Mode,
-                                          values = ~total_order, text = ~paste(Ship.Mode), hoverinfo = "value",
+                                          values = ~total_order, textinfo = "label+percent", text = ~paste(total_order, "orders"), hoverinfo = "text",
                                           marker = list(colors = c("#78bfe3", "#b6e8fa", "#3f6ebf", "#1d4a82"))) %>%
       layout(
         title = "Ship Mode Purchase Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_ship_mode_distribution
@@ -227,12 +224,11 @@ function(input, output, session) {
     filtered_plot_data <- filter(plot_data, Order.Year == selected_year)
     
     plot_region_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Region,
-                                           values = ~total_order, text = ~paste(Region), hoverinfo = "value",
+                                           values = ~total_order, textinfo = "label+percent", text = ~paste(total_order, "orders"), hoverinfo = "text",
                                            marker = list(colors = c("#78bfe3", "#3f6ebf", "#b6e8fa", "#1d4a82"))) %>%
       layout(
         title = "Region Purchase Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_region_distribution
@@ -343,8 +339,8 @@ function(input, output, session) {
       ungroup() %>%
       mutate(Month.Name = month.name[Order.Month],
              tooltip = paste(Segment,
-                             "\n$", Month.Name,
-                             "\n$", format(round(total_sales, 2), big.mark = ","),
+                             "\n", Month.Name,
+                             "\n$", format(round(total_sales), big.mark = ","),
                              sep = ""))
     
     max_sales <- max(plot_data$total_sales)
@@ -356,7 +352,7 @@ function(input, output, session) {
       mutate(avg_sales = median(total_sales))
     
     plot_sales_segment_trend <- ggplot(filtered_plot_data, aes(x = Order.Month, y = total_sales, text = tooltip)) +
-      geom_line(aes(y = avg_sales, text = paste("Median:\n$", format(round(avg_sales, 2), big.mark = ","), sep = " ")),
+      geom_line(aes(y = avg_sales, text = paste("Median:\n$", format(round(avg_sales), big.mark = ","), sep = " ")),
                 size = 1,
                 col = "pink",
                 group = 1,
@@ -402,8 +398,8 @@ function(input, output, session) {
       ungroup() %>%
       mutate(Month.Name = month.name[Order.Month],
              tooltip = paste(Category,
-                             "\n$", Month.Name,
-                             "\n$", format(round(total_sales, 2), big.mark = ","),
+                             "\n", Month.Name,
+                             "\n$", format(round(total_sales), big.mark = ","),
                              sep = ""))
     
     max_sales <- max(plot_data$total_sales)
@@ -415,7 +411,7 @@ function(input, output, session) {
       mutate(avg_sales = median(total_sales))
     
     plot_sales_category_trend <- ggplot(filtered_plot_data, aes(x = Order.Month, y = total_sales, text = tooltip)) +
-      geom_line(aes(y = avg_sales, text = paste("Median:\n$", format(round(avg_sales, 2), big.mark = ","), sep = " ")),
+      geom_line(aes(y = avg_sales, text = paste("Median:\n$", format(round(avg_sales), big.mark = ","), sep = " ")),
                 size = 1,
                 col = "pink",
                 group = 1,
@@ -461,8 +457,8 @@ function(input, output, session) {
       ungroup() %>%
       mutate(Month.Name = month.name[Order.Month],
              tooltip = paste(Region,
-                             "\n$", Month.Name,
-                             "\n$", format(round(total_sales, 2), big.mark = ","),
+                             "\n", Month.Name,
+                             "\n$", format(round(total_sales), big.mark = ","),
                              sep = ""))
     
     max_sales <- max(plot_data$total_sales)
@@ -474,7 +470,7 @@ function(input, output, session) {
       mutate(avg_sales = median(total_sales))
     
     plot_sales_region_trend <- ggplot(filtered_plot_data, aes(x = Order.Month, y = total_sales, text = tooltip)) +
-      geom_line(aes(y = avg_sales, text = paste("Median:\n$", format(round(avg_sales, 2), big.mark = ","), sep = " ")),
+      geom_line(aes(y = avg_sales, text = paste("Median:\n$", format(round(avg_sales), big.mark = ","), sep = " ")),
                 size = 1,
                 col = "pink",
                 group = 1) +
@@ -516,8 +512,6 @@ function(input, output, session) {
     plotly
   })
   
-  
-  
   output$sales_category_distribution <- renderPlotly({
     plot_data <- ecom %>% 
       group_by(Category, Order.Year) %>% 
@@ -526,15 +520,18 @@ function(input, output, session) {
     
     selected_year <- input$sales_select_year
     
-    filtered_plot_data <- filter(plot_data, Order.Year == selected_year)
+    filtered_plot_data <- plot_data %>% 
+      filter(Order.Year == selected_year) %>% 
+      mutate(
+        formatted_sales = format(round(total_sales), big.mark = ",")
+      )
     
     plot_category_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Category,
-                                          values = ~total_sales, text = ~paste(Category), hoverinfo = "value",
+                                          values = ~total_sales, textinfo = "label+percent", text = ~paste("Total $", formatted_sales, sep = ""), hoverinfo = "text",
                                           marker = list(colors = c("#3f6ebf", "#1d4a82", "#95d5f5"))) %>%
       layout(
         title = "Category Sales Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_category_distribution
@@ -549,16 +546,18 @@ function(input, output, session) {
     
     selected_year <- input$sales_select_year
     
-    filtered_plot_data <- plot_data %>%
-      filter(Order.Year == selected_year)
+    filtered_plot_data <- plot_data %>% 
+      filter(Order.Year == selected_year) %>% 
+      mutate(
+        formatted_sales = format(round(total_sales), big.mark = ",")
+      )
     
     plot_segment_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Segment,
-                                          values = ~total_sales, text = ~paste(Segment), hoverinfo = "value",
+                                          values = ~total_sales, textinfo = "label+percent", text = ~paste("Total $", formatted_sales, sep = ""), hoverinfo = "text",
                                           marker = list(colors = c("#3f6ebf", "#1d4a82", "#95d5f5"))) %>%
       layout(
         title = "Segment Sales Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_segment_distribution
@@ -573,15 +572,18 @@ function(input, output, session) {
     
     selected_year <- input$sales_select_year
     
-    filtered_plot_data <- filter(plot_data, Order.Year == selected_year)
+    filtered_plot_data <- plot_data %>% 
+      filter(Order.Year == selected_year) %>% 
+      mutate(
+        formatted_sales = format(round(total_sales), big.mark = ",")
+      )
     
     plot_region_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Region,
-                                        values = ~total_sales, text = ~paste(Region), hoverinfo = "value",
+                                          values = ~total_sales, textinfo = "label+percent", text = ~paste("Total $", formatted_sales, sep = ""), hoverinfo = "text",
                                         marker = list(colors = c("#78bfe3", "#3f6ebf", "#b6e8fa", "#1d4a82"))) %>%
       layout(
         title = "Region Sales Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_region_distribution
@@ -695,8 +697,8 @@ function(input, output, session) {
       ungroup() %>%
       mutate(Month.Name = month.name[Order.Month],
              tooltip = paste(Segment,
-                             "\n$", Month.Name,
-                             "\n$", format(round(total_profit, 2), big.mark = ","),
+                             "\n", Month.Name,
+                             "\n$", format(round(total_profit), big.mark = ","),
                              sep = ""))
     
     max_profit <- max(plot_data$total_profit)
@@ -709,7 +711,7 @@ function(input, output, session) {
       mutate(avg_profit = median(total_profit))
     
     plot_profit_segment_trend <- ggplot(filtered_plot_data, aes(x = Order.Month, y = total_profit, text = tooltip)) +
-      geom_line(aes(y = avg_profit, text = paste("Median:\n$", format(round(avg_profit, 2), big.mark = ","), sep = " ")),
+      geom_line(aes(y = avg_profit, text = paste("Median:\n$", format(round(avg_profit), big.mark = ","), sep = " ")),
                 size = 1,
                 col = "pink",
                 group = 1,
@@ -759,8 +761,8 @@ function(input, output, session) {
       ungroup() %>%
       mutate(Month.Name = month.name[Order.Month],
              tooltip = paste(Category,
-                             "\n$", Month.Name,
-                             "\n$", format(round(total_profit, 2), big.mark = ","),
+                             "\n", Month.Name,
+                             "\n$", format(round(total_profit), big.mark = ","),
                              sep = ""))
     
     max_profit <- max(plot_data$total_profit)
@@ -773,7 +775,7 @@ function(input, output, session) {
       mutate(avg_profit = median(total_profit))
     
     plot_profit_category_trend <- ggplot(filtered_plot_data, aes(x = Order.Month, y = total_profit, text = tooltip)) +
-      geom_line(aes(y = avg_profit, text = paste("Median:\n$", format(round(avg_profit, 2), big.mark = ","), sep = " ")),
+      geom_line(aes(y = avg_profit, text = paste("Median:\n$", format(round(avg_profit), big.mark = ","), sep = " ")),
                 size = 1,
                 col = "pink",
                 group = 1,
@@ -823,8 +825,8 @@ function(input, output, session) {
       ungroup() %>%
       mutate(Month.Name = month.name[Order.Month],
              tooltip = paste(Region,
-                             "\n$", Month.Name,
-                             "\n$", format(round(total_profit, 2), big.mark = ","),
+                             "\n", Month.Name,
+                             "\n$", format(round(total_profit), big.mark = ","),
                              sep = ""))
     
     max_profit <- max(plot_data$total_profit)
@@ -837,7 +839,7 @@ function(input, output, session) {
       mutate(avg_profit = median(total_profit))
     
     plot_profit_region_trend <- ggplot(filtered_plot_data, aes(x = Order.Month, y = total_profit, text = tooltip)) +
-      geom_line(aes(y = avg_profit, text = paste("Median:\n$", format(round(avg_profit, 2), big.mark = ","), sep = " ")),
+      geom_line(aes(y = avg_profit, text = paste("Median:\n$", format(round(avg_profit), big.mark = ","), sep = " ")),
                 size = 1,
                 col = "pink",
                 group = 1,
@@ -894,15 +896,17 @@ function(input, output, session) {
     selected_year <- input$profit_select_year
     
     filtered_plot_data <- plot_data %>%
-      filter(Order.Year == selected_year)
+      filter(Order.Year == selected_year) %>% 
+      mutate(
+        formatted_profit = format(round(total_profit), big.mark = ',')
+      )
     
     plot_segment_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Segment,
-                                         values = ~total_profit, text = ~paste(Segment), hoverinfo = "value",
+                                         values = ~total_profit, textinfo = "label+percent", text = ~paste("Total $", formatted_profit, sep = ""), hoverinfo = "text",
                                          marker = list(colors = c("#3f6ebf", "#1d4a82", "#95d5f5"))) %>%
       layout(
         title = "Segment Profit Distributions",
-        showlegend = FALSE,
-        hovermode = "hoverinfo"
+        showlegend = FALSE
       )
     
     plot_segment_distribution
@@ -916,10 +920,14 @@ function(input, output, session) {
     
     selected_year <- input$profit_select_year
     
-    filtered_plot_data <- filter(plot_data, Order.Year == selected_year)
+    filtered_plot_data <- plot_data %>%
+      filter(Order.Year == selected_year) %>% 
+      mutate(
+        formatted_profit = format(round(total_profit), big.mark = ',')
+      )
     
     plot_category_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Category,
-                                          values = ~total_profit, text = ~paste(Category), hoverinfo = "value",
+                                          values = ~total_profit, textinfo = "label+percent", text = ~paste("Total $", formatted_profit, sep = ""), hoverinfo = "text",
                                           marker = list(colors = c("#3f6ebf", "#1d4a82", "#95d5f5"))) %>%
       layout(
         title = "Category Profit Distributions",
@@ -933,15 +941,19 @@ function(input, output, session) {
   output$profit_region_distribution <- renderPlotly({
     plot_data <- ecom %>% 
       group_by(Region, Order.Year) %>% 
-      summarise(total_sales = sum(Profit)) %>% 
+      summarise(total_profit = sum(Profit)) %>% 
       ungroup()
     
     selected_year <- input$profit_select_year
     
-    filtered_plot_data <- filter(plot_data, Order.Year == selected_year)
+    filtered_plot_data <- plot_data %>%
+      filter(Order.Year == selected_year) %>% 
+      mutate(
+        formatted_profit = format(round(total_profit), big.mark = ',')
+      )
     
     plot_region_distribution <- plot_ly(filtered_plot_data, type = "pie", labels = ~Region,
-                                        values = ~total_sales, text = ~paste(Region), hoverinfo = "value",
+                                        values = ~total_profit, textinfo = "label+percent", text = ~paste("Total $", formatted_profit, sep = ""), hoverinfo = "text",
                                         marker = list(colors = c("#78bfe3", "#3f6ebf", "#b6e8fa", "#1d4a82"))) %>%
       layout(
         title = "Region Profit Distributions",
