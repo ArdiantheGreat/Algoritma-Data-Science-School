@@ -1,0 +1,14 @@
+name: superstore_analytics_3rd_july
+title: superstore_analytics_3rd_july
+username:
+account: ardian
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9398455
+bundleId: 7412823
+url: https://ardian.shinyapps.io/superstore_analytics_3rd_july/
+when: 1688351567.38422
+lastSyncTime: 1688351567.38424
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: main.Rmd
