@@ -53,6 +53,53 @@ function(input, output, session) {
     )
   })
   
+  output$overview_order_monthly_trend_by_year <- renderPlotly({
+    plot_data <- ecom %>%
+      group_by(Order.Year, Order.Month) %>%
+      summarise(total_order = n()) %>% 
+      ungroup() %>%
+      mutate(Month.Name = month.name[Order.Month],
+             tooltip = paste(Month.Name,
+                             "\n", format(total_order, big.mark = ","), " orders",
+                             sep = ""))
+    
+    max_order <- max(plot_data$total_order)
+    
+    selected_year <- input$overview_select_year
+    
+    filtered_plot_data <- plot_data %>% 
+      filter(Order.Year == selected_year) %>% 
+      mutate(avg_order = median(total_order))
+    
+    plot_order_monthly_trend_by_year <- ggplot(filtered_plot_data, aes(x = Order.Month, y = total_order, text = tooltip)) +
+      geom_line(aes(y = avg_order, text = paste("Median:\n", format(avg_order, big.mark = ","), "orders", sep = " "), col = "Median"),
+                size = 1,
+                group = 1,
+                show.legend = T) +  # Show the legend for the pink line
+      geom_line(aes(y = total_order, col = "Total Order"),
+                size = 1,
+                group = 2) +
+      geom_point(size = 3, col = "#041675") +
+      labs(
+        title = glue("Orders"),
+        x = NULL,
+        y = NULL
+      ) +
+      ylim(0, max_order) +
+      scale_x_continuous(breaks = seq(min(filtered_plot_data$Order.Month), max(filtered_plot_data$Order.Month), by = 2),
+                         labels = function(x) month.name[x]) +
+      scale_color_manual(values = c("Total Order" = "#52cbff", "Median" = "pink")) +
+      theme_minimal()
+    
+    plotly <- ggplotly(plot_order_monthly_trend_by_year, tooltip = "text")
+    
+    plotly <- plotly %>%
+      layout(legend = list(orientation = "h", x = 0.5, y = -0.2, title = ""))
+    
+    plotly
+    
+  })
+  
   output$overview_sales_monthly_trend_by_year <- renderPlotly({
     plot_data <- ecom %>%
       group_by(Order.Year, Order.Month) %>%

@@ -29,6 +29,12 @@ dashboardPage(
         ),
         fluidRow(
           box(
+            width = 12,
+            plotlyOutput("overview_order_monthly_trend_by_year")
+          )
+        ),
+        fluidRow(
+          box(
             width = 6,
             plotlyOutput("overview_sales_monthly_trend_by_year")
           ),

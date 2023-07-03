@@ -12,6 +12,7 @@ library(stringr)
 # Read the data
 ecom <- read.csv("Sample - Superstore.csv", stringsAsFactors = T)
 
+
 #----Correct wrong data types----
 ecom <- mutate(
   ecom,
