@@ -1,0 +1,264 @@
+```{r}
+library(dplyr)
+library(Ardian)
+library(lubridate)
+library(GGally)
+library(e1071)
+library(caret)
+library(partykit)
+library(randomForest)
+library(xgboost)
+library(tidyr)
+library(tensorflow)
+library(keras)
+```
+
+### **Baca data** train
+```{r}
+train <- read.csv("data_input/data-train.csv")
+
+train
+```
+                                                                       
+                                                                        
+                                                                        DATA WRANGLING
+  
+### Periksa **duplikat** dan **missing value**                                                                     
+```{r}
+train %>% anyDuplicated()
+train %>% anyNA()
+train %>% is.na() %>% colSums()
+```
+  Tidak ada duplicated data, namun terdapat missing value. Kabar baiknya, missing value-nya hanya pada kolom candidate key dan foreign key, yang di mana itu adalah kolom yang pasti akan kita drop.
+  Oh iya, ternyata missing values pada kedua kolom tersebut dikarenakan tidak adanya driver, yang di mana informasi tersebut sudah diwakili oleh kolom *status* dengan nilai "nondrivers"
+
+### **Drop kolom** selain *start_time*, *src_area*, dan *status*
+  Ternyata, setelah saya lihat, data test hanya terdapat input *src_area* dan *start_time*. Karena itu, saya akan drop semua kolom selain dua kolom tersebut dan juga kolom *status*. Kolom *status* akan menjadi penentu apakah lokasi *src_area* pada waktu tertentu terdapat jumlah driver yang **sufficient** atau tidak
+```{r}
+train <- train %>% select(start_time, src_area, status)
+
+train
+```
+
+### Periksa **struktur data** kita
+```{r}
+train %>% glimpse()
+train %>% head()
+train %>% tail()
+```
+  Kita perlu mengubah **tipe data** ketiga kolom kita, yaitu:
+    1. Kolom *start_time* menjadi **Datetime**, 
+    2. Kolom *src_area* dan *status* menjadi **factor**
+
+### Ubah tipe data 
+```{r}
+train <- train %>% 
+  rename(issuficient = status) %>% 
+  mutate(start_time = ymd_hms(start_time),
+         issuficient = ifelse(issuficient == "nodrivers", 1, 0) %>% as.factor()) %>% 
+  mutate_if(is.character, as.factor)
+
+train
+```
+
+### **Extract informasi** sebanyak mungkin dari kolom *start_time*
+Untuk sementara, saya akan **kumpul semua informasi** yang bisa saya dapatkan dari kolom *start_time*. Nanti akan saya lakukan feature selection
+```{r}
+train <- train %>% 
+  mutate(ymonth = month(start_time, label = F) %>% as.factor(),
+         week_range = as.factor(getWeekRange(start_time)),
+         mday = day(start_time),
+         wday = wday(start_time, label = F) %>% as.factor,
+         day = wday(start_time),
+         hour = hour(start_time),
+         dhour = as.factor(hour),
+         day_range = ifelse(day > 4, "weekend", "weekday") %>% as.factor(),
+         hour_range = getHourRange(hour) %>% as.factor()) %>% 
+  select(-start_time)
+
+train
+```
+
+
+```{r}
+ggcorr(train, label = T)
+```
+
+
+```{r}
+train$issuficient %>% table() %>% prop.table()
+train$issuficient %>% table()
+```
+
+
+```{r}
+up_train <- upSample(x = train %>% select(-issuficient),
+                  y = train$issuficient,
+                  yname = "issuficient")
+```
+
+
+```{r}
+up_train$issuficient %>% table() %>% prop.table()
+up_train$issuficient %>% table()
+```
+
+
+```{r}
+RNGkind(sample.kind = "Rounding")
+set.seed(1)
+
+indices <- sample(nrow(up_train), nrow(up_train) * 0.8)
+
+train_data <- up_train[indices, ]
+test_data <- up_train[-indices, ]
+
+X_train <- train_data %>% select(-issuficient)
+y_train <- train_data$issuficient
+
+X_test <- test_data %>% select(-issuficient)
+y_test <- test_data$issuficient
+```
+
+
+```{r}
+train %>% glimpse()
+```
+
+
+```{r}
+train_data <- train_data %>% select(-hour, -day)
+test_data <- test_data %>% select(-hour, -day)
+```
+
+
+```{r}
+model_lgr_none <- glm(issuficient ~ 1, "binomial", train_data)
+
+model_lgr_all <- glm(issuficient ~ ., "binomial", train_data)
+
+model_lgr_forward <- step(model_lgr_none,
+                          direction = "forward",
+                          scope = list(lower = model_lgr_none, upper = model_lgr_all),
+                          trace = F)
+
+model_lgr_backward <- step(model_lgr_all,
+                          direction = "backward",
+                          trace = F)
+
+model_lgr_both <- step(model_lgr_none,
+                       direction = "both",
+                       scope = list(lower = model_lgr_none, upper = model_lgr_all),
+                       trace = F)
+
+model_lgr_ian1 <- glm(issuficient ~ src_area + ymonth + mday + wday + dhour, "binomial", train_data)
+model_lgr_ian2 <- glm(issuficient ~ src_area + ymonth + mday + wday + dhour + hour_range, "binomial", train_data)
+model_lgr_ian3 <- glm(issuficient ~ src_area + ymonth + mday + wday + hour_range, "binomial", train_data)
+
+model_lgr_ian4 <- glm(issuficient ~ src_area + ymonth + mday + wday + dhour + day_range, "binomial", train_data)
+model_lgr_ian5 <- glm(issuficient ~ src_area + ymonth + mday + wday + dhour + hour_range + day_range, "binomial", train_data)
+model_lgr_ian6 <- glm(issuficient ~ src_area + ymonth + mday + wday + hour_range + day_range, "binomial", train_data)
+
+model_lgr_ian7 <- glm(issuficient ~ src_area + ymonth + mday + week_range + wday + dhour, family = "binomial", train_data)
+model_lgr_ian8 <- glm(issuficient ~ src_area + ymonth + mday +  week_range + wday + dhour + hour_range, "binomial", train_data)
+model_lgr_ian9 <- glm(issuficient ~ src_area + ymonth + mday + week_range + wday + hour_range, "binomial", train_data)
+
+model_lgr_ian10 <- glm(issuficient ~ src_area + ymonth + mday + week_range + wday + dhour + day_range, "binomial", train_data)
+model_lgr_ian11 <- glm(issuficient ~ src_area + ymonth + mday + week_range + wday + dhour + hour_range + day_range, "binomial", train_data)
+model_lgr_ian12 <- glm(issuficient ~ src_area + ymonth + mday + week_range + wday + hour_range + day_range, "binomial", train_data)
+```
+
+
+```{r}
+model_lgr_all$aic
+model_lgr_forward$aic
+model_lgr_backward$aic
+model_lgr_both$aic
+"--------------------"
+model_lgr_ian1$aic
+model_lgr_ian2$aic
+model_lgr_ian3$aic
+model_lgr_ian4$aic
+model_lgr_ian5$aic
+model_lgr_ian6$aic
+model_lgr_ian7$aic
+model_lgr_ian8$aic
+model_lgr_ian9$aic
+model_lgr_ian10$aic
+model_lgr_ian11$aic
+model_lgr_ian12$aic
+"---------------------"
+model_lgr_all$deviance
+model_lgr_forward$deviance
+model_lgr_backward$deviance
+model_lgr_both$deviance
+"---------------------"
+model_lgr_ian1$deviance
+model_lgr_ian2$deviance
+model_lgr_ian3$deviance
+model_lgr_ian4$deviance
+model_lgr_ian5$deviance
+model_lgr_ian6$deviance
+model_lgr_ian7$deviance
+model_lgr_ian8$deviance
+model_lgr_ian9$deviance
+model_lgr_ian10$deviance
+model_lgr_ian11$deviance
+model_lgr_ian12$deviance
+```
+
+
+```{r}
+train_data <- train_data %>% select(issuficient, src_area, ymonth, mday, week_range, wday, dhour)
+test_data <- test_data %>% select(issuficient, src_area, ymonth, mday, week_range, wday, dhour)
+
+X_train <- X_train %>% select(src_area, ymonth, mday, week_range, wday, dhour)
+X_test <- X_test %>% select(src_area, ymonth, mday, week_range, wday, dhour)
+
+model_lgr <- model_lgr_ian7
+
+model_lgr %>% summary()
+```
+
+
+```{r}
+pred_lgr <- predict(model_lgr, X_test, type = "response")
+pred_lgr <- ifelse(pred_lgr > 0.5, 1, 0)
+
+confusionMatrix(as.factor(pred_lgr), y_test, positive = "1")
+```
+
+
+```{r}
+model_nb <- naiveBayes(x = X_train,
+                       y = y_train,
+                       laplace = 1)
+```
+
+
+```{r}
+pred_nb <- predict(model_nb, X_test, type = "class")
+
+confusionMatrix(pred_nb, y_test)
+```
+
+
+```{r}
+model_rf <- randomForest(issuficient ~ .,
+                         data = train_data,
+                         ntree = 345,
+                         mtry = 6,
+                         importance = T)
+```
+
+```{r}
+pred_rf <- predict(model_rf, X_test)
+
+confusionMatrix(pred_rf, y_test)
+```
+
+```{r}
+
+```
+
+
